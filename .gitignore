@@ -22,12 +22,6 @@
 **/daemon
 **/*._*
 
-# org.txture.core
-# ==============================
-**/*.xtendbin
-
-# org.txture.client
-# ==============================
 **/npm-debug.log
 **/node_modules
 **/dist
@@ -112,3 +106,7 @@ modules.xml
 **/.idea
 
 # End of https://www.gitignore.io/api/intellij
+
+
+# do not upload gradle settings (contains passwords)
+**/gradle.properties
