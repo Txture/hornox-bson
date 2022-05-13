@@ -110,3 +110,6 @@ modules.xml
 
 # do not upload gradle settings (contains passwords)
 **/gradle.properties
+
+# do not upload the publishing instructions
+README_Publishing.md
