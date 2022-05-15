@@ -10,6 +10,19 @@ Hornox is a fast, simple-stupid BSON serializer, deserializer and node extractor
 - Binary format is byte-by-byte identical to the output produced by the BSON implementation in the [Java MongoDB Driver](https://www.mongodb.com/java)
 - Extract individual paths from a byte array in BSON format without deserializing the whole document
 
+## Installation
+
+Please check the latest release on our [Maven Distribution](https://mvnrepository.com/artifact/io.txture/hornox-bson). It contains a wide variety of instructions for different package managers. As an example, here's the maven dependency:
+
+```xml
+<dependency>
+    <groupId>io.txture</groupId>
+    <artifactId>hornox-bson</artifactId>
+    <version>{please check for latest version}</version>
+</dependency>
+
+```
+
 
 ## Performance
 
