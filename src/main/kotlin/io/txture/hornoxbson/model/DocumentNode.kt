@@ -32,6 +32,7 @@ class DocumentNode(
     }
 
     override fun put(key: String, value: JsonValue?): JsonValue? {
+        require(key.none { it.code == 0x00 }) { "NULL bytes are not allowed in BSON strings. The offending key is the map key ''${key}'." }
         return this.fields.put(key, value.toBsonNode())
     }
 
@@ -163,9 +164,9 @@ class DocumentNode(
         get() = this.fields.values as MutableCollection<JsonValue>
 
 
-    inner class EntriesCollection: MutableSet<MutableMap.MutableEntry<String, JsonValue>> {
+    inner class EntriesCollection : MutableSet<MutableMap.MutableEntry<String, JsonValue>> {
         override fun add(element: MutableMap.MutableEntry<String, JsonValue>): Boolean {
-            if(this@DocumentNode.containsKey(element.key)){
+            if (this@DocumentNode.containsKey(element.key)) {
                 return false
             }
             this@DocumentNode[element.key] = element.value.toBsonNode()
@@ -174,8 +175,8 @@ class DocumentNode(
 
         override fun addAll(elements: Collection<MutableMap.MutableEntry<String, JsonValue>>): Boolean {
             var changed = false
-            for(entry in elements){
-                if(this.add(entry)){
+            for (entry in elements) {
+                if (this.add(entry)) {
                     changed = true
                 }
             }
@@ -194,8 +195,8 @@ class DocumentNode(
         }
 
         override fun containsAll(elements: Collection<MutableMap.MutableEntry<String, JsonValue>>): Boolean {
-            for(element in elements){
-                if(!this.contains(element)){
+            for (element in elements) {
+                if (!this.contains(element)) {
                     return false
                 }
             }
@@ -217,15 +218,15 @@ class DocumentNode(
             val map = elements.asSequence().map { it.key to it.value }.toMap()
             val iterator = this.iterator()
             var changed = false
-            while(iterator.hasNext()){
+            while (iterator.hasNext()) {
                 val current = iterator.next()
-                if(!map.containsKey(current.key)){
+                if (!map.containsKey(current.key)) {
                     iterator.remove()
                     changed = true
                     continue
                 }
                 val expectedValue = map[current.key]
-                if(current.value != expectedValue.toBsonNode()){
+                if (current.value != expectedValue.toBsonNode()) {
                     iterator.remove()
                     changed = true
                     continue
@@ -236,8 +237,8 @@ class DocumentNode(
 
         override fun removeAll(elements: Collection<MutableMap.MutableEntry<String, JsonValue>>): Boolean {
             var changed = false
-            for(entry in elements){
-                if(this.remove(entry)){
+            for (entry in elements) {
+                if (this.remove(entry)) {
                     changed = true
                 }
             }
@@ -246,7 +247,7 @@ class DocumentNode(
 
         override fun remove(element: MutableMap.MutableEntry<String, JsonValue>): Boolean {
             val currentValue = this@DocumentNode[element.key]
-            if(currentValue != element.value.toBsonNode()){
+            if (currentValue != element.value.toBsonNode()) {
                 return false
             }
             this@DocumentNode.remove(element.key)

@@ -14,6 +14,12 @@ class TextNode(
 
     }
 
+    init {
+        require(this.value.none { it.code == 0x00 }){
+            "NULL bytes are not allwed in BSON text nodes! Offending value: ${this.value}"
+        }
+    }
+
     override val fingerprintByte: Byte
         get() = FINGERPRINT_BYTE
 
