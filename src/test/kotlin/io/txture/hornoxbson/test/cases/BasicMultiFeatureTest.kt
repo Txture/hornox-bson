@@ -8,12 +8,14 @@ import io.txture.hornoxbson.model.DocumentNode
 import io.txture.hornoxbson.model.DoubleNode
 import io.txture.hornoxbson.model.Int32Node
 import io.txture.hornoxbson.model.TextNode
+import org.junit.jupiter.api.Tag
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import java.util.*
 
+@Tag("UnitTest")
 class BasicMultiFeatureTest {
 
     companion object {

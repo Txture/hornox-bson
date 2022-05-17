@@ -5,6 +5,7 @@ import io.txture.hornoxbson.util.LittleEndianExtensions.readLittleEndianDouble
 import io.txture.hornoxbson.util.LittleEndianExtensions.readLittleEndianLong
 import io.txture.hornoxbson.util.LittleEndianExtensions.writeLittleEndianDouble
 import io.txture.hornoxbson.util.LittleEndianExtensions.writeLittleEndianLong
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -14,6 +15,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.*
 
+@Tag("UnitTest")
 class LittleEndianUtilsTest {
 
     @Test

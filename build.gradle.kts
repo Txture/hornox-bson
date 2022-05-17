@@ -12,6 +12,9 @@ version = "1.0"
 
 repositories {
     mavenCentral()
+    maven {
+        setUrl("https://oss.sonatype.org/content/groups/public")
+    }
 }
 
 kotlin {
@@ -31,6 +34,16 @@ dependencies {
     testImplementation("org.junit.jupiter", "junit-jupiter")
     testImplementation("io.strikt:strikt-core:0.34.1")
     testImplementation("ch.qos.logback:logback-classic:1.2.11")
+
+    testImplementation("org.mongodb:bson:4.6.0")
+    testImplementation("jakarta.json:jakarta.json-api:2.1.0")
+    testImplementation("de.undercouch:bson4jackson:2.13.2-SNAPSHOT")
+    testImplementation("com.fasterxml.jackson.core", "jackson-annotations", "2.13.1")
+    testImplementation("com.fasterxml.jackson.core", "jackson-core", "2.13.1")
+    testImplementation("com.fasterxml.jackson.core", "jackson-databind", "2.13.1")
+    testImplementation("com.fasterxml.jackson.datatype", "jackson-datatype-json-org", "2.13.1")
+    testImplementation("com.fasterxml.jackson.module", "jackson-module-kotlin", "2.13.1")
+
 }
 
 signing {
@@ -46,7 +59,10 @@ tasks {
     }
 
     test {
-        useJUnitPlatform()
+        useJUnitPlatform {
+            includeTags("UnitTest", "IntegrationTest")
+            excludeTags("Benchmark")
+        }
     }
 
     val javadocJar by creating(Jar::class) {
