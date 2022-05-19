@@ -122,4 +122,4 @@ When **serializing** a document, Hornox offers three options when it comes to si
 
 ## Bring your own DOM classes
 
-Since version 1.1, Hornox supports parsing / serializing custom DOM tree nodes. Your classes do not need to implement any particular interfaces for this to work; all you have to do is to provide a valid implementation of the `BsonDomModule<T>` interface, and pass this module to the `BsonSerializer` or `BsonDeserializer` method of your choice.
+Since version 1.1, Hornox supports parsing / serializing custom DOM tree nodes. Your classes do not need to implement any particular interfaces for this to work; all you have to do is to provide a valid implementation of the `BsonDomModule<T>` interface, and pass this module to the `BsonSerializer` or `BsonDeserializer` method of your choice. Of course, you can still use the DOM nodes that come with Hornox itself. For a reference implementation of the interface, please have a look at `HornoxDomModule`.
