@@ -8,20 +8,20 @@ class DbPointerNode : BsonNode, JsonString {
 
     companion object {
 
-        @JvmField
-        val FINGERPRINT_BYTE = 0x0C.toByte()
-
         val BINARY_PART_SIZE_BYTES = 12 // according to BSON spec, a DBPointer has exactly 12 bytes.
 
     }
 
+    override val nodeType: NodeType
+        get() = NodeType.DB_POINTER
+
     var name: String
 
     var value: ByteArray
-        get() {
-            return field
-        }
         set(newValue) {
+            require(newValue.size <= BINARY_PART_SIZE_BYTES){
+                "A DB-Pointer node can hold up to ${BINARY_PART_SIZE_BYTES} bytes in its value. The given value has ${newValue.size} bytes."
+            }
             val newBytes = ByteArray(BINARY_PART_SIZE_BYTES)
             if(newValue.size < BINARY_PART_SIZE_BYTES){
                 // write the bytes we have in front...
@@ -42,9 +42,6 @@ class DbPointerNode : BsonNode, JsonString {
         this.name = name
         this.value = value
     }
-
-    override val fingerprintByte: Byte
-        get() = FINGERPRINT_BYTE
 
     override fun getValueType(): JsonValue.ValueType {
         return JsonValue.ValueType.STRING

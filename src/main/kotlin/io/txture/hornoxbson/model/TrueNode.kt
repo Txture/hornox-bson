@@ -4,6 +4,9 @@ import jakarta.json.JsonValue
 
 object TrueNode : BooleanNode {
 
+    override val nodeType: NodeType
+        get() = NodeType.TRUE
+
     override val value: Boolean
         get() = true
 

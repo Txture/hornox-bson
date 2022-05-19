@@ -4,15 +4,8 @@ class TimestampNode(
     override val value: Long,
 ) : LongNode {
 
-    companion object {
-
-        @JvmField
-        val FINGERPRINT_BYTE = 0x11.toByte()
-
-    }
-
-    override val fingerprintByte: Byte
-        get() = FINGERPRINT_BYTE
+    override val nodeType: NodeType
+        get() = NodeType.TIMESTAMP
 
 
     override fun equals(other: Any?): Boolean {

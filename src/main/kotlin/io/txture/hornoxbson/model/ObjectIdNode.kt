@@ -8,16 +8,19 @@ class ObjectIdNode : BsonValueNode<ByteArray>, JsonString {
 
     companion object {
 
-        @JvmField
-        val FINGERPRINT_BYTE = 0x07.toByte()
-
         val SIZE_BYTES = 12 // according to BSON spec, a DBPointer has exactly 12 bytes.
 
     }
 
+    override val nodeType: NodeType
+        get() = NodeType.OBJECT_ID
+
     override val value: ByteArray
 
     constructor(value: ByteArray){
+        require(value.size <= SIZE_BYTES){
+            "The given byte array has length ${value.size}. ObjectIdNodes can only hold up to ${SIZE_BYTES} bytes."
+        }
         val newBytes = ByteArray(12)
         if(value.size < SIZE_BYTES){
             // write the bytes we have in front...
@@ -33,9 +36,6 @@ class ObjectIdNode : BsonValueNode<ByteArray>, JsonString {
         }
         this.value = newBytes
     }
-
-    override val fingerprintByte: Byte
-        get() = FINGERPRINT_BYTE
 
     override fun getValueType(): JsonValue.ValueType {
         return JsonValue.ValueType.STRING

@@ -7,16 +7,8 @@ class SymbolNode(
     override val value: String,
 ) : BsonValueNode<String>, JsonString {
 
-    companion object {
-
-        @JvmField
-        val FINGERPRINT_BYTE = 0x0E.toByte()
-
-    }
-
-    override val fingerprintByte: Byte
-        get() = FINGERPRINT_BYTE
-
+    override val nodeType: NodeType
+        get() = NodeType.SYMBOL
 
     override fun getValueType(): JsonValue.ValueType {
         return JsonValue.ValueType.STRING

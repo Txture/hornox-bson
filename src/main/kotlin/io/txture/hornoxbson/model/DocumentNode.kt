@@ -8,16 +8,8 @@ class DocumentNode(
     val fields: MutableMap<String, BsonNode> = mutableMapOf(),
 ) : BsonNode, JsonObject {
 
-
-    companion object {
-
-        @JvmField
-        val FINGERPRINT_BYTE = 0x03.toByte()
-
-    }
-
-    override val fingerprintByte: Byte
-        get() = FINGERPRINT_BYTE
+    override val nodeType: NodeType
+        get() = NodeType.DOCUMENT
 
     override fun toString(): String {
         return "{${this.fields.entries.joinToString { "\"${it.key}\": ${it.value}" }}}"
@@ -31,7 +23,7 @@ class DocumentNode(
         this.fields.clear()
     }
 
-    override fun put(key: String, value: JsonValue?): JsonValue? {
+    override fun put(key: String, value: JsonValue?): BsonNode? {
         require(key.none { it.code == 0x00 }) { "NULL bytes are not allowed in BSON strings. The offending key is the map key ''${key}'." }
         return this.fields.put(key, value.toBsonNode())
     }
@@ -42,7 +34,7 @@ class DocumentNode(
         }
     }
 
-    override fun remove(key: String?): JsonValue? {
+    override fun remove(key: String?): BsonNode? {
         if (key == null) {
             return null
         }
@@ -61,7 +53,7 @@ class DocumentNode(
         return this.fields.containsValue(realValue)
     }
 
-    override fun get(key: String?): JsonValue? {
+    override fun get(key: String?): BsonNode? {
         return this.fields[key]
     }
 
@@ -69,7 +61,7 @@ class DocumentNode(
         return this.fields.isEmpty()
     }
 
-    override fun getJsonArray(name: String): JsonArray {
+    override fun getJsonArray(name: String): ArrayNode {
         return when (val node = this.fields[name]) {
             is ArrayNode -> node
             null -> throw NullPointerException("Cannot get key '${name}' as JsonArray - there is no value for this key!")
@@ -77,7 +69,7 @@ class DocumentNode(
         }
     }
 
-    override fun getJsonObject(name: String): JsonObject {
+    override fun getJsonObject(name: String): DocumentNode {
         return when (val node = this.fields[name]) {
             is DocumentNode -> node
             null -> throw NullPointerException("Cannot get key '${name}' as JsonObject - there is no value for this key!")
@@ -85,17 +77,17 @@ class DocumentNode(
         }
     }
 
-    override fun getJsonNumber(name: String): JsonNumber {
+    override fun getJsonNumber(name: String): BsonNumberNode<out Number> {
         return when (val node = this.fields[name]) {
-            is JsonNumber -> node
+            is BsonNumberNode<*> -> node
             null -> throw NullPointerException("Cannot get key '${name}' as JsonNumber - there is no value for this key!")
             else -> throw ClassCastException("Cannot get key '${name}' as JsonNumber - it is of type ${node.javaClass.name}!")
         }
     }
 
-    override fun getJsonString(name: String): JsonString {
+    override fun getJsonString(name: String): TextNode {
         return when (val node = this.fields[name]) {
-            is JsonString -> node
+            is TextNode -> node
             null -> throw NullPointerException("Cannot get key '${name}' as JsonString - there is no value for this key!")
             else -> throw ClassCastException("Cannot get key '${name}' as JsonString - it is of type ${node.javaClass.name}!")
         }

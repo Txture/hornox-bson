@@ -19,6 +19,9 @@ class BinaryNode(
     override val fingerprintByte: Byte
         get() = FINGERPRINT_BYTE
 
+    override val nodeType: NodeType
+        get() = NodeType.BINARY
+
     override fun getValueType(): JsonValue.ValueType {
         // there is no "real" value type we can use in the JSON spec,
         // but string comes closest.

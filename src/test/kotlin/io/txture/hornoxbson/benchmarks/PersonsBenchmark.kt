@@ -41,19 +41,19 @@ class PersonsBenchmark {
     @Test
     fun runPersonsBenchmark() {
         // write
-        val writeStats = mutableListOf<Stats>()
-        writeStats += this.benchmarkMongoWrite()
-        writeStats += this.benchmarkJacksonBsonWrite()
-        writeStats += this.benchmarkHornoxBsonWrite()
-        writeStats += this.benchmarkJacksonJsonWrite()
-
-        renderTableToConsole("Serialize ${numberOfPersons} Persons", writeStats)
+//        val writeStats = mutableListOf<Stats>()
+//        writeStats += this.benchmarkMongoWrite()
+//        writeStats += this.benchmarkJacksonBsonWrite()
+//        writeStats += this.benchmarkHornoxBsonWrite()
+//        writeStats += this.benchmarkJacksonJsonWrite()
+//
+//        renderTableToConsole("Serialize ${numberOfPersons} Persons", writeStats)
 
         val readStats = mutableListOf<Stats>()
-        readStats += this.benchmarkMongoRead()
-        readStats += this.benchmarkJacksonBsonRead()
+//        readStats += this.benchmarkMongoRead()
+//        readStats += this.benchmarkJacksonBsonRead()
         readStats += this.benchmarkHornoxBsonRead()
-        readStats += this.benchmarkJacksonJsonRead()
+//        readStats += this.benchmarkJacksonJsonRead()
 
         renderTableToConsole("Deserialize ${numberOfPersons} Persons", readStats)
     }

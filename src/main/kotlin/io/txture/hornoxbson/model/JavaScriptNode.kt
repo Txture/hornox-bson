@@ -7,16 +7,8 @@ class JavaScriptNode(
     override val value: String,
 ) : BsonValueNode<String>, JsonString {
 
-    companion object {
-
-        @JvmField
-        val FINGERPRINT_BYTE = 0x0D.toByte()
-
-    }
-
-    override val fingerprintByte: Byte
-        get() = FINGERPRINT_BYTE
-
+    override val nodeType: NodeType
+        get() = NodeType.JAVA_SCRIPT
 
     override fun getValueType(): JsonValue.ValueType {
         return JsonValue.ValueType.STRING

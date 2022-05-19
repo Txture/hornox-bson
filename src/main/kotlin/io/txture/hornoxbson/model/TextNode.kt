@@ -7,22 +7,14 @@ class TextNode(
     override val value: String,
 ) : BsonValueNode<String>, JsonString {
 
-    companion object {
-
-        @JvmField
-        val FINGERPRINT_BYTE = 0x02.toByte()
-
-    }
-
     init {
         require(this.value.none { it.code == 0x00 }){
-            "NULL bytes are not allwed in BSON text nodes! Offending value: ${this.value}"
+            "NULL bytes are not allowed in BSON text nodes! Offending value: ${this.value}"
         }
     }
 
-    override val fingerprintByte: Byte
-        get() = FINGERPRINT_BYTE
-
+    override val nodeType: NodeType
+        get() = NodeType.TEXT
 
     override fun getValueType(): JsonValue.ValueType {
         return JsonValue.ValueType.STRING

@@ -8,10 +8,7 @@ import org.junit.jupiter.params.provider.ValueSource
 import io.txture.hornoxbson.BsonSerializer
 import io.txture.hornoxbson.BsonSerializer.SizeMarkersWriterSetting
 import io.txture.hornoxbson.ByteExtensions.hex
-import io.txture.hornoxbson.model.ArrayNode
-import io.txture.hornoxbson.model.DocumentNode
-import io.txture.hornoxbson.model.Int32Node
-import io.txture.hornoxbson.model.TextNode
+import io.txture.hornoxbson.model.*
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEmpty
@@ -106,7 +103,7 @@ class ArrayNodeIoTest : IoTest() {
             get { this.size }.isEqualTo(expectedSize)
             get { ByteBuffer.wrap(this).order(ByteOrder.LITTLE_ENDIAN) }.and {
                 get { this.getInt(0) }.isEqualTo(sizeToAssert)
-                get { this.get(Int.SIZE_BYTES) }.isEqualTo(Int32Node.FINGERPRINT_BYTE)
+                get { this.get(Int.SIZE_BYTES) }.isEqualTo(NodeType.INT32.fingerprintByte)
                 get { this.get(expectedSize-1) }.isEqualTo(0x00.toByte())
             }
         }

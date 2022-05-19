@@ -16,8 +16,8 @@ class DoubleNode(
 
     }
 
-    override val fingerprintByte: Byte
-        get() = FINGERPRINT_BYTE
+    override val nodeType: NodeType
+        get() = NodeType.DOUBLE
 
     override fun getValueType(): JsonValue.ValueType {
         return JsonValue.ValueType.NUMBER

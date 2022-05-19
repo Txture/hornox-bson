@@ -2,6 +2,8 @@ package io.txture.hornoxbson
 
 import io.txture.hornoxbson.BsonSerializer.SizeMarkersWriterSetting.*
 import io.txture.hornoxbson.ByteExtensions.NULL_BYTE
+import io.txture.hornoxbson.dommodule.BsonDomModule
+import io.txture.hornoxbson.dommodule.HornoxDomModule
 import io.txture.hornoxbson.model.*
 import io.txture.hornoxbson.util.LittleEndianExtensions.writeLittleEndianDouble
 import io.txture.hornoxbson.util.LittleEndianExtensions.writeLittleEndianInt
@@ -28,8 +30,23 @@ object BsonSerializer {
     @JvmStatic
     @JvmOverloads
     fun serializeBsonDocument(documentNode: DocumentNode, sizeMarkers: SizeMarkersWriterSetting = RECOMPUTE): ByteArray {
+        return serializeBsonDocument(documentNode, sizeMarkers, HornoxDomModule)
+    }
+
+    /**
+     * Serializes the given [documentNode] into a [ByteArray].
+     *
+     * @param documentNode The document to serialize.
+     * @param sizeMarkers Indicates which size markers to write into the output array. Please refer to the documentation
+     * of the individual literals for details. The default is [RECOMPUTE].
+     *
+     * @return A byte array in BSON-format that contains the given document.
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun <T> serializeBsonDocument(documentNode: T, sizeMarkers: SizeMarkersWriterSetting = RECOMPUTE, domModule: BsonDomModule<T>): ByteArray {
         ByteArrayOutputStream().use { baos ->
-            serializeBsonDocument(documentNode, baos, sizeMarkers)
+            serializeBsonDocument(documentNode, baos, sizeMarkers, domModule)
             return baos.toByteArray()
         }
     }
@@ -43,32 +60,58 @@ object BsonSerializer {
      * of the individual literals for details. The default is [RECOMPUTE].
      */
     @JvmStatic
-    fun serializeBsonDocument(documentNode: DocumentNode, outputStream: OutputStream, sizeMarkers: SizeMarkersWriterSetting) {
+    @JvmOverloads
+    fun serializeBsonDocument(documentNode: DocumentNode, outputStream: OutputStream, sizeMarkers: SizeMarkersWriterSetting = RECOMPUTE) {
+        return serializeBsonDocument(documentNode, outputStream, sizeMarkers, HornoxDomModule)
+    }
+
+    /**
+     * Serializes the given [documentNode] into the given [outputStream].
+     *
+     * @param documentNode The document to serialize.
+     * @param outputStream The output stream to write the data into. The caller is responsible for providing an open stream, and is also responsible for closing it.
+     * @param sizeMarkers Indicates which size markers to write into the output array. Please refer to the documentation
+     * of the individual literals for details. The default is [RECOMPUTE].
+     * @param
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun <T> serializeBsonDocument(documentNode: T, outputStream: OutputStream, sizeMarkers: SizeMarkersWriterSetting = RECOMPUTE, domModule: BsonDomModule<T>) {
         when (sizeMarkers) {
             WRITE_MINUS_1 -> {
                 outputStream.writeLittleEndianInt(-1)
-                for ((fieldName, valueNode) in documentNode.fields) {
-                    outputStream.writeByte(valueNode.fingerprintByte)
+                for(fieldName in domModule.getDocumentNodeFields(documentNode)){
+                    val valueNode = domModule.getDocumentNodeFieldValue(documentNode, fieldName)
+                        ?: continue
+                    val nodeType = domModule.getNodeType(valueNode)
+                    outputStream.writeByte(nodeType.fingerprintByte)
                     outputStream.writeCString(fieldName)
-                    writeFieldValue(valueNode, outputStream, sizeMarkers)
+                    writeFieldValue(valueNode, outputStream, sizeMarkers, domModule)
                 }
                 outputStream.writeNullByte() // end of document
             }
             TRUST_DOCUMENT -> {
-                outputStream.writeLittleEndianInt(documentNode.length)
-                for ((fieldName, valueNode) in documentNode.fields) {
-                    outputStream.writeByte(valueNode.fingerprintByte)
+                val documentBinarySize = domModule.getDocumentNodeSizeBytes(documentNode)
+                outputStream.writeLittleEndianInt(documentBinarySize)
+                for(fieldName in domModule.getDocumentNodeFields(documentNode)){
+                    val valueNode = domModule.getDocumentNodeFieldValue(documentNode, fieldName)
+                        ?: continue
+                    val fieldNodeType = domModule.getNodeType(valueNode)
+                    outputStream.writeByte(fieldNodeType.fingerprintByte)
                     outputStream.writeCString(fieldName)
-                    writeFieldValue(valueNode, outputStream, sizeMarkers)
+                    writeFieldValue(valueNode, outputStream, sizeMarkers, domModule)
                 }
                 outputStream.writeNullByte() // end of document
             }
             RECOMPUTE -> {
                 val docBytes = ByteArrayOutputStream().use { innerStream ->
-                    for ((fieldName, valueNode) in documentNode.fields) {
-                        innerStream.writeByte(valueNode.fingerprintByte)
+                    for(fieldName in domModule.getDocumentNodeFields(documentNode)){
+                        val valueNode = domModule.getDocumentNodeFieldValue(documentNode, fieldName)
+                            ?: continue
+                        val fieldNodeType = domModule.getNodeType(valueNode)
+                        innerStream.writeByte(fieldNodeType.fingerprintByte)
                         innerStream.writeCString(fieldName)
-                        writeFieldValue(valueNode, innerStream, sizeMarkers)
+                        writeFieldValue(valueNode, innerStream, sizeMarkers, domModule)
                     }
                     innerStream.toByteArray()
                 }
@@ -76,7 +119,7 @@ object BsonSerializer {
                 //  + the length of the size integer itself
                 //  + the terminating null byte
                 val newSize = docBytes.size + Int.SIZE_BYTES + 1
-                documentNode.length = newSize
+                domModule.setDocumentNodeSizeBytes(documentNode, newSize)
                 outputStream.writeLittleEndianInt(newSize)
                 outputStream.write(docBytes)
                 outputStream.writeNullByte()
@@ -84,32 +127,39 @@ object BsonSerializer {
         }
     }
 
-    private fun writeBsonArray(arrayNode: ArrayNode, out: OutputStream, sizeMarkers: SizeMarkersWriterSetting) {
+    private fun <T> writeBsonArray(arrayNode: T, out: OutputStream, sizeMarkers: SizeMarkersWriterSetting, domModule: BsonDomModule<T>) {
         when (sizeMarkers) {
             WRITE_MINUS_1 -> {
                 out.writeLittleEndianInt(-1)
-                for ((index, field) in arrayNode.fields.withIndex()) {
-                    out.writeByte(field.fingerprintByte)
+                for(index in 0 until domModule.getArrayNodeLength(arrayNode)){
+                    val entry = domModule.getArrayNodeEntry(arrayNode, index)
+                    val nodeType = domModule.getNodeType(entry)
+                    out.writeByte(nodeType.fingerprintByte)
                     out.writeCString(index.toString())
-                    writeFieldValue(field, out, sizeMarkers)
+                    writeFieldValue(entry, out, sizeMarkers, domModule)
                 }
                 out.writeNullByte() // end of array according to BSON spec
             }
             TRUST_DOCUMENT -> {
-                out.writeLittleEndianInt(arrayNode.length)
-                for ((index, field) in arrayNode.fields.withIndex()) {
-                    out.writeByte(field.fingerprintByte)
+                val length = domModule.getArrayNodeSizeBytes(arrayNode)
+                out.writeLittleEndianInt(length)
+                for(index in 0 until domModule.getArrayNodeLength(arrayNode)){
+                    val entry = domModule.getArrayNodeEntry(arrayNode, index)
+                    val nodeType = domModule.getNodeType(entry)
+                    out.writeByte(nodeType.fingerprintByte)
                     out.writeCString(index.toString())
-                    writeFieldValue(field, out, sizeMarkers)
+                    writeFieldValue(entry, out, sizeMarkers, domModule)
                 }
                 out.writeNullByte() // end of array according to BSON spec
             }
             RECOMPUTE -> {
                 val entryBytes = ByteArrayOutputStream().use { innerStream ->
-                    for ((index, field) in arrayNode.fields.withIndex()) {
-                        innerStream.writeByte(field.fingerprintByte)
+                    for(index in 0 until domModule.getArrayNodeLength(arrayNode)){
+                        val entry = domModule.getArrayNodeEntry(arrayNode, index)
+                        val nodeType = domModule.getNodeType(entry)
+                        innerStream.writeByte(nodeType.fingerprintByte)
                         innerStream.writeCString(index.toString())
-                        writeFieldValue(field, innerStream, sizeMarkers)
+                        writeFieldValue(entry, innerStream, sizeMarkers, domModule)
                     }
                     innerStream.toByteArray()
                 }
@@ -117,7 +167,7 @@ object BsonSerializer {
                 //  + the length of the size integer itself
                 //  + the terminating null byte
                 val newSize = entryBytes.size + Int.SIZE_BYTES + 1
-                arrayNode.length = newSize
+                domModule.setArrayNodeSizeBytes(arrayNode, newSize)
                 out.writeLittleEndianInt(newSize)
                 out.write(entryBytes)
                 out.writeNullByte() // end of array according to BSON spec
@@ -125,16 +175,21 @@ object BsonSerializer {
         }
     }
 
-    private fun writeJavaScriptWithScopeValue(node: JavaScriptWithScopeNode, out: OutputStream, sizeMarkers: SizeMarkersWriterSetting) {
+    private fun <T> writeJavaScriptWithScopeValue(node: T, out: OutputStream, sizeMarkers: SizeMarkersWriterSetting, domModule: BsonDomModule<T>) {
         when (sizeMarkers) {
             WRITE_MINUS_1 -> {
                 out.writeLittleEndianInt(-1)
-                out.writeString(node.value)
-                serializeBsonDocument(node.scope, out, sizeMarkers)
+                val scriptContent = domModule.getJavaScriptWithScopeScriptContent(node)
+                out.writeString(scriptContent)
+                val scopeDocument = domModule.getJavaScriptWithScopeScopeDocument(node)
+                serializeBsonDocument(scopeDocument, out, sizeMarkers, domModule)
             }
             TRUST_DOCUMENT -> {
-                val codeBytes = node.string.toByteArray()
-                val totalSize = node.scope.length + // context document length
+                val scriptContent = domModule.getJavaScriptWithScopeScriptContent(node)
+                val scopeDocument = domModule.getJavaScriptWithScopeScopeDocument(node)
+                val scopeDocumentLength = domModule.getDocumentNodeSizeBytes(scopeDocument)
+                val codeBytes = scriptContent.toByteArray()
+                val totalSize = scopeDocumentLength + // context document length
                     Int.SIZE_BYTES + // size of the code_w_s node
                     codeBytes.size + // size of the source code
                     Int.SIZE_BYTES + // length of the source code
@@ -143,15 +198,21 @@ object BsonSerializer {
                 out.writeLittleEndianInt(codeBytes.size + 1)
                 out.write(codeBytes)
                 out.writeNullByte()
-                serializeBsonDocument(node.scope, out, sizeMarkers)
+                serializeBsonDocument(scopeDocument, out, sizeMarkers, domModule)
             }
             RECOMPUTE -> {
-                val codeBytes = node.string.toByteArray()
+                val scriptContent = domModule.getJavaScriptWithScopeScriptContent(node)
+                val scopeDocument = domModule.getJavaScriptWithScopeScopeDocument(node)
+                val codeBytes = scriptContent.toByteArray()
                 val scopeContentBytes = ByteArrayOutputStream().use { innerStream ->
-                    for ((fieldName, valueNode) in node.scope.fields) {
-                        innerStream.writeByte(valueNode.fingerprintByte)
+                    val fieldNames = domModule.getDocumentNodeFields(scopeDocument)
+                    for(fieldName in fieldNames){
+                        val valueNode = domModule.getDocumentNodeFieldValue(scopeDocument, fieldName)
+                            ?: continue
+                        val nodeType = domModule.getNodeType(valueNode)
+                        innerStream.writeByte(nodeType.fingerprintByte)
                         innerStream.writeCString(fieldName)
-                        writeFieldValue(valueNode, innerStream, sizeMarkers)
+                        writeFieldValue(valueNode, innerStream, sizeMarkers, domModule)
                     }
                     innerStream.toByteArray()
                 }
@@ -173,68 +234,84 @@ object BsonSerializer {
         }
     }
 
-    private fun writeFieldValue(node: BsonNode, out: OutputStream, sizeMarkers: SizeMarkersWriterSetting) {
-        when (node) {
-            is DoubleNode -> {
-                out.writeLittleEndianDouble(node.value)
+    private fun <T> writeFieldValue(node: T, out: OutputStream, sizeMarkers: SizeMarkersWriterSetting, domModule: BsonDomModule<T>) {
+        when (domModule.getNodeType(node)) {
+            NodeType.DOUBLE -> {
+                val value = domModule.getDoubleNodeValue(node)
+                out.writeLittleEndianDouble(value)
             }
-            is TextNode -> {
-                out.writeString(node.value)
+            NodeType.TEXT -> {
+                val value = domModule.getTextNodeStringContent(node)
+                out.writeString(value)
             }
-            is DocumentNode -> serializeBsonDocument(node, out, sizeMarkers)
-            is ArrayNode -> writeBsonArray(node, out, sizeMarkers)
-            is BinaryNode -> {
-                out.writeLittleEndianInt(node.value.size)
-                out.writeByte(node.subtype.byte)
-                out.write(node.value)
+            NodeType.DOCUMENT -> serializeBsonDocument(node, out, sizeMarkers, domModule)
+            NodeType.ARRAY -> writeBsonArray(node, out, sizeMarkers, domModule)
+            NodeType.BINARY -> {
+                val array = domModule.getBinaryNodeValue(node)
+                out.writeLittleEndianInt(array.size)
+                val subType = domModule.getBinaryNodeSubType(node)
+                out.writeByte(subType.byte)
+                out.write(array)
             }
-            UndefinedNode -> {
+            NodeType.UNDEFINED -> {
                 // no-op
             }
-            is ObjectIdNode -> {
-                out.write(node.value)
+            NodeType.OBJECT_ID -> {
+                val value = domModule.getObjectIdNodeValue(node)
+                out.write(value)
             }
-            FalseNode -> out.writeByte(NULL_BYTE)
-            TrueNode -> out.writeByte(0x01)
-            is UtcDateTimeNode -> {
-                out.writeLittleEndianLong(node.value)
+            NodeType.FALSE -> out.writeByte(NULL_BYTE)
+            NodeType.TRUE -> out.writeByte(0x01)
+            NodeType.UTC_DATE_TIME -> {
+                val value = domModule.getUtcDateTimeNodeValue(node)
+                out.writeLittleEndianLong(value)
             }
-            NullNode -> {
+            NodeType.NULL -> {
                 // no-op
             }
-            is RegularExpressionNode -> {
-                out.writeCString(node.regularExpression)
-                out.writeCString(node.options)
+            NodeType.REGULAR_EXPRESSION -> {
+                val regex = domModule.getRegularExpressionNodeExpression(node)
+                val options = domModule.getRegularExpressionNodeOptions(node)
+                out.writeCString(regex)
+                out.writeCString(options)
             }
-            is DbPointerNode -> {
-                out.writeString(node.name)
-                out.write(node.value)
+            NodeType.DB_POINTER -> {
+                val name = domModule.getDbPointerNodeName(node)
+                val value = domModule.getDbPointerNodeValue(node)
+                out.writeString(name)
+                out.write(value)
             }
-            is JavaScriptNode -> {
-                out.writeString(node.value)
+            NodeType.JAVA_SCRIPT -> {
+                val content = domModule.getJavaScriptNodeScriptContent(node)
+                out.writeString(content)
             }
-            is SymbolNode -> {
-                out.writeString(node.value)
+            NodeType.SYMBOL -> {
+                val symbol = domModule.getSymbolNodeValue(node)
+                out.writeString(symbol)
             }
-            is JavaScriptWithScopeNode -> {
-                writeJavaScriptWithScopeValue(node, out, sizeMarkers)
+            NodeType.JAVA_SCRIPT_WITH_SCOPE -> {
+                writeJavaScriptWithScopeValue(node, out, sizeMarkers, domModule)
             }
-            is Int32Node -> {
-                out.writeLittleEndianInt(node.value)
+            NodeType.INT32 -> {
+                val value = domModule.getInt32NodeValue(node)
+                out.writeLittleEndianInt(value)
             }
-            is TimestampNode -> {
-                out.writeLittleEndianLong(node.value)
+            NodeType.TIMESTAMP -> {
+                val value = domModule.getTimestampNodeValue(node)
+                out.writeLittleEndianLong(value)
             }
-            is Int64Node -> {
-                out.writeLittleEndianLong(node.value)
+            NodeType.INT64 -> {
+                val value = domModule.getInt64NodeValue(node)
+                out.writeLittleEndianLong(value)
             }
-            is Decimal128Node -> {
-                out.write(node.value)
+            NodeType.DECIMAL_128 -> {
+                val value = domModule.getDecimal128NodeValue(node)
+                out.write(value)
             }
-            MaxKeyNode -> {
+            NodeType.MAX_KEY -> {
                 // no-op
             }
-            MinKeyNode -> {
+            NodeType.MIN_KEY -> {
                 // no-op
             }
         }

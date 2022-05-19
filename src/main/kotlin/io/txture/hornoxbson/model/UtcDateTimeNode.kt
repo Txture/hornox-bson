@@ -4,15 +4,8 @@ class UtcDateTimeNode(
     override val value: Long,
 ) : LongNode {
 
-    companion object {
-
-        @JvmField
-        val FINGERPRINT_BYTE = 0x09.toByte()
-
-    }
-
-    override val fingerprintByte: Byte
-        get() = FINGERPRINT_BYTE
+    override val nodeType: NodeType
+        get() = NodeType.UTC_DATE_TIME
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

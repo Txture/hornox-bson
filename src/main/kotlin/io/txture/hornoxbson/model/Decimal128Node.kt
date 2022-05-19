@@ -1,24 +1,27 @@
 package io.txture.hornoxbson.model
 
+import io.txture.hornoxbson.ByteExtensions.hex
 import jakarta.json.JsonString
 import jakarta.json.JsonValue
-import io.txture.hornoxbson.ByteExtensions.hex
 
 class Decimal128Node : BsonValueNode<ByteArray>, JsonString {
 
     companion object {
 
         @JvmField
-        val FINGERPRINT_BYTE = 0x13.toByte()
-
-        @JvmField
         val SIZE_BYTES = 128 / 8
 
     }
 
+    override val nodeType: NodeType
+        get() = NodeType.DECIMAL_128
+
     override val value: ByteArray
 
     constructor(bytes: ByteArray) {
+        require(bytes.size <= SIZE_BYTES){
+            "A Decimal-128 node can hold up to ${SIZE_BYTES} bytes. The given value has ${bytes.size} bytes."
+        }
         val newBytes = ByteArray(SIZE_BYTES)
         if (bytes.size < SIZE_BYTES) {
             // write the bytes we have in front...
@@ -34,9 +37,6 @@ class Decimal128Node : BsonValueNode<ByteArray>, JsonString {
         }
         this.value = newBytes
     }
-
-    override val fingerprintByte: Byte
-        get() = FINGERPRINT_BYTE
 
     override fun getValueType(): JsonValue.ValueType {
         // there is no "real" value type we can use in the JSON spec,

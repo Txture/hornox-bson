@@ -4,11 +4,8 @@ import jakarta.json.JsonValue
 
 object NullNode : BsonNode {
 
-    @JvmField
-    val FINGERPRINT_BYTE = 0x0A.toByte()
-
-    override val fingerprintByte: Byte
-        get() = FINGERPRINT_BYTE
+    override val nodeType: NodeType
+        get() = NodeType.NULL
 
     override fun toString(): String {
         return "null"

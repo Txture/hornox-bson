@@ -4,14 +4,11 @@ import jakarta.json.JsonValue
 
 object MaxKeyNode : BsonNode {
 
-    @JvmField
-    val FINGERPRINT_BYTE = 0x7F.toByte()
-
-    override val fingerprintByte: Byte
-        get() = FINGERPRINT_BYTE
+    override val nodeType: NodeType
+        get() = NodeType.MAX_KEY
 
     override fun toString(): String {
-        return "undefined"
+        return "MaxKey"
     }
 
     override fun getValueType(): JsonValue.ValueType {

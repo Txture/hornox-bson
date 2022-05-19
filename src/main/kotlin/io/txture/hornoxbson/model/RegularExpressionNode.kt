@@ -6,9 +6,6 @@ class RegularExpressionNode : BsonValueNode<String> {
 
     companion object {
 
-        @JvmField
-        val FINGERPRINT_BYTE = 0x0B.toByte()
-
         val allowedCharacters = setOf(
             'i', // case-insensitive
             'm', // multi-line
@@ -53,8 +50,8 @@ class RegularExpressionNode : BsonValueNode<String> {
         this.options = options.asSequence().filter { it in allowedCharacters }.distinct().sorted().joinToString(separator = "")
     }
 
-    override val fingerprintByte: Byte
-        get() = FINGERPRINT_BYTE
+    override val nodeType: NodeType
+        get() = NodeType.REGULAR_EXPRESSION
 
     override fun getValueType(): JsonValue.ValueType {
         return JsonValue.ValueType.STRING

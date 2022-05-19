@@ -8,17 +8,10 @@ class ArrayNode(
     val fields: MutableList<BsonNode> = mutableListOf(),
 ) : BsonNode, JsonArray {
 
-    companion object {
-
-        @JvmField
-        val FINGERPRINT_BYTE = 0x04.toByte()
-
-    }
+    override val nodeType: NodeType
+        get() = NodeType.ARRAY
 
     constructor(vararg nodes: BsonNode): this(length = -1, fields = nodes.toMutableList())
-
-    override val fingerprintByte: Byte
-        get() = FINGERPRINT_BYTE
 
     override fun getValueType(): JsonValue.ValueType {
         return JsonValue.ValueType.ARRAY
@@ -74,8 +67,8 @@ class ArrayNode(
         return this.fields.containsAll(elements.map { it.toBsonNode() })
     }
 
-    override fun get(index: Int): JsonValue {
-        return this.fields.get(index)
+    override fun get(index: Int): BsonNode {
+        return this.fields[index]
     }
 
     override fun isEmpty(): Boolean {
@@ -97,11 +90,11 @@ class ArrayNode(
     override val size: Int
         get() = this.fields.size
 
-    override fun set(index: Int, element: JsonValue): JsonValue {
+    override fun set(index: Int, element: JsonValue): BsonNode {
         return this.fields.set(index, element.toBsonNode())
     }
 
-    override fun removeAt(index: Int): JsonValue {
+    override fun removeAt(index: Int): BsonNode {
         return this.fields.removeAt(index)
     }
 
@@ -155,30 +148,30 @@ class ArrayNode(
         }
     }
 
-    override fun getJsonNumber(index: Int): JsonNumber {
+    override fun getJsonNumber(index: Int): BsonNumberNode<out Number> {
         return when (val element = this@ArrayNode[index]) {
-            is JsonNumber -> element
+            is BsonNumberNode<*> -> element
             else -> throw ClassCastException("Cannot get array element at index '${index}' as String - its node is of type ${element.javaClass.name}!")
         }
     }
 
-    override fun getJsonString(index: Int): JsonString {
+    override fun getJsonString(index: Int): TextNode {
         return when (val element = this@ArrayNode[index]) {
             is TextNode -> element
             else -> throw ClassCastException("Cannot get array element at index '${index}' as String - its node is of type ${element.javaClass.name}!")
         }
     }
 
-    override fun getJsonArray(index: Int): JsonArray {
+    override fun getJsonArray(index: Int): ArrayNode {
         return when (val element = this@ArrayNode[index]) {
-            is JsonArray -> element
+            is ArrayNode -> element
             else -> throw ClassCastException("Cannot get array element at index '${index}' as JsonArray - its node is of type ${element.javaClass.name}!")
         }
     }
 
-    override fun getJsonObject(index: Int): JsonObject {
+    override fun getJsonObject(index: Int): DocumentNode {
         return when (val element = this@ArrayNode[index]) {
-            is JsonObject -> element
+            is DocumentNode -> element
             else -> throw ClassCastException("Cannot get array element at index '${index}' as JsonObject - its node is of type ${element.javaClass.name}!")
         }
     }

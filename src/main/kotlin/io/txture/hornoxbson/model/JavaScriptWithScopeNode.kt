@@ -5,24 +5,17 @@ import jakarta.json.JsonValue
 
 class JavaScriptWithScopeNode: BsonValueNode<String>, JsonString {
 
-    companion object {
-
-        @JvmField
-        val FINGERPRINT_BYTE = 0x0F.toByte()
-
-    }
+    override val nodeType: NodeType
+        get() = NodeType.JAVA_SCRIPT_WITH_SCOPE
 
     override val value: String
+
     val scope: DocumentNode
 
     constructor(scriptContent: String, context: DocumentNode){
         this.value = scriptContent
         this.scope = context
     }
-
-    override val fingerprintByte: Byte
-        get() = FINGERPRINT_BYTE
-
 
     override fun getValueType(): JsonValue.ValueType {
         return JsonValue.ValueType.STRING

@@ -8,15 +8,8 @@ class Int32Node(
     override val value: Int,
 ) : BsonNumberNode<Int> {
 
-    companion object {
-
-        @JvmField
-        val FINGERPRINT_BYTE = 0x10.toByte()
-
-    }
-
-    override val fingerprintByte: Byte
-        get() = FINGERPRINT_BYTE
+    override val nodeType: NodeType
+        get() = NodeType.INT32
 
     override fun getValueType(): JsonValue.ValueType {
         return JsonValue.ValueType.NUMBER

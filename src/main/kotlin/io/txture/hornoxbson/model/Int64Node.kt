@@ -4,15 +4,8 @@ class Int64Node(
     override val value: Long,
 ) : LongNode {
 
-    companion object {
-
-        @JvmField
-        val FINGERPRINT_BYTE = 0x12.toByte()
-
-    }
-
-    override val fingerprintByte: Byte
-        get() = FINGERPRINT_BYTE
+    override val nodeType: NodeType
+        get() = NodeType.INT64
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
