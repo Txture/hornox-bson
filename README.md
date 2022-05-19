@@ -72,6 +72,8 @@ val bytes: ByteArray = ... // e.g. load it from a file, from a HTTP response...
 val document = BsonDeserializer.deserializeBsonDocument(bytes)
 ```
 
+Hornox currently supports `ByteArray`s, `ByteBuffer`s and `InputStream`s as inputs to the parser / path extractor. While they are equivalent in terms of parser / extractor functionality, please note that `ByteArray`s are always best in terms of parser performance (but require that the whole input is present in-memory). `InputStream`s (aside from being a very ubiquitous interface in the Java ecosystem) offer the potential of lazily loading your input data if necessary, but are generally slower to parse.
+
 ## Individual Node Extraction from BSON Byte Arrays
 
 Hornox allows you to extract a path from the serialized (binary) BSON format.
@@ -117,3 +119,7 @@ When **serializing** a document, Hornox offers three options when it comes to si
  - `USE_MINUS_1`: Always write -1 in all size fields, effectively invalidating them. This is the faster to write than recomputing the accurate sizes, but slower to scan through later.
  - `TRUST_DOCUMENT`: Trust the `length` field which is present in the `DocumentNode` or `ArrayNode`, and write its contents into the byte array. This is generally not recommended, as the `length` field is **not** automatically updated when the content of the document or array changes. However, it can be used to quickly serialize a document with known size fields.
  - `RECOMPUTE`: Recompute all sizes prior to serialization. This is the default. Please note that this also changes the `length` fields of the `DocumentNode`s and `ArrayNode`s as a side-effect. 
+
+## Bring your own DOM classes
+
+Since version 1.1, Hornox supports parsing / serializing custom DOM tree nodes. Your classes do not need to implement any particular interfaces for this to work; all you have to do is to provide a valid implementation of the `BsonDomModule<T>` interface, and pass this module to the `BsonSerializer` or `BsonDeserializer` method of your choice.
