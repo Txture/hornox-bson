@@ -19,6 +19,83 @@ import java.io.OutputStream
 object BsonSerializer {
 
     /**
+     * Serializes the given [node] into a new [ByteArray].
+     *
+     * Please note that the result will **not** be a valid BSON document with respect to the specification, because
+     * the specification only allows [DocumentNode]s on the top level. Use [BsonDeserializer.deserializeBsonNode] to
+     * read it again.
+     *
+     * @param node The node to serialize.
+     * @param sizeMarkers How size markers should be handled during serialization. The default is [RECOMPUTE].
+     *
+     * @return The byte array containing the serialized data.
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun serializeBsonNode(node: BsonNode, sizeMarkers: SizeMarkersWriterSetting = RECOMPUTE): ByteArray {
+        return this.serializeBsonNode(node, sizeMarkers, HornoxDomModule)
+    }
+
+    /**
+     * Serializes the given [node] into a new [ByteArray].
+     *
+     * Please note that the result will **not** be a valid BSON document with respect to the specification, because
+     * the specification only allows [DocumentNode]s on the top level. Use [BsonDeserializer.deserializeBsonNode] to
+     * read it again.
+     *
+     * @param node The node to serialize.
+     * @param sizeMarkers How size markers should be handled during serialization. The default is [RECOMPUTE].
+     * @param domModule The DOM module to use for the conversion.
+     *
+     * @return The byte array containing the serialized data.
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun <T> serializeBsonNode(node: T, sizeMarkers: SizeMarkersWriterSetting = RECOMPUTE, domModule: BsonDomModule<T>): ByteArray {
+        ByteArrayOutputStream().use { outputStream ->
+            this.serializeBsonNode(node, outputStream, sizeMarkers, domModule)
+            outputStream.flush()
+            return outputStream.toByteArray()
+        }
+    }
+
+    /**
+     * Serializes the given [node] into the given [outputStream].
+     *
+     * Please note that the result will **not** be a valid BSON document with respect to the specification, because
+     * the specification only allows [DocumentNode]s on the top level. Use [BsonDeserializer.deserializeBsonNode] to
+     * read it again.
+     *
+     * @param node The node to serialize.
+     * @param outputStream The output stream which should receive the serialized data.
+     * @param sizeMarkers How size markers should be handled during serialization. The default is [RECOMPUTE].
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun serializeBsonNode(node: BsonNode, outputStream: OutputStream, sizeMarkers: SizeMarkersWriterSetting = RECOMPUTE) {
+        this.serializeBsonNode(node, outputStream, sizeMarkers, HornoxDomModule)
+    }
+
+    /**
+     * Serializes the given [node] into the given [outputStream].
+     *
+     * Please note that the result will **not** be a valid BSON document with respect to the specification, because
+     * the specification only allows [DocumentNode]s on the top level. Use [BsonDeserializer.deserializeBsonNode] to
+     * read it again.
+     *
+     * @param node The node to serialize.
+     * @param outputStream The output stream which should receive the serialized data.
+     * @param sizeMarkers How size markers should be handled during serialization. The default is [RECOMPUTE].
+     * @param domModule The DOM module to use for the conversion.
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun <T> serializeBsonNode(node: T, outputStream: OutputStream, sizeMarkers: SizeMarkersWriterSetting = RECOMPUTE, domModule: BsonDomModule<T>) {
+        outputStream.write(domModule.getNodeType(node).fingerprintByte.toInt())
+        this.writeFieldValue(node, outputStream, sizeMarkers, domModule)
+    }
+
+    /**
      * Serializes the given [documentNode] into a [ByteArray].
      *
      * @param documentNode The document to serialize.
@@ -39,6 +116,7 @@ object BsonSerializer {
      * @param documentNode The document to serialize.
      * @param sizeMarkers Indicates which size markers to write into the output array. Please refer to the documentation
      * of the individual literals for details. The default is [RECOMPUTE].
+     * @param domModule The DOM module to use for the conversion.
      *
      * @return A byte array in BSON-format that contains the given document.
      */
@@ -72,7 +150,7 @@ object BsonSerializer {
      * @param outputStream The output stream to write the data into. The caller is responsible for providing an open stream, and is also responsible for closing it.
      * @param sizeMarkers Indicates which size markers to write into the output array. Please refer to the documentation
      * of the individual literals for details. The default is [RECOMPUTE].
-     * @param
+     * @param domModule The DOM module to use for the conversion.
      */
     @JvmStatic
     @JvmOverloads
@@ -80,7 +158,7 @@ object BsonSerializer {
         when (sizeMarkers) {
             WRITE_MINUS_1 -> {
                 outputStream.writeLittleEndianInt(-1)
-                for(fieldName in domModule.getDocumentNodeFields(documentNode)){
+                for (fieldName in domModule.getDocumentNodeFields(documentNode)) {
                     val valueNode = domModule.getDocumentNodeFieldValue(documentNode, fieldName)
                         ?: continue
                     val nodeType = domModule.getNodeType(valueNode)
@@ -93,7 +171,7 @@ object BsonSerializer {
             TRUST_DOCUMENT -> {
                 val documentBinarySize = domModule.getDocumentNodeSizeBytes(documentNode)
                 outputStream.writeLittleEndianInt(documentBinarySize)
-                for(fieldName in domModule.getDocumentNodeFields(documentNode)){
+                for (fieldName in domModule.getDocumentNodeFields(documentNode)) {
                     val valueNode = domModule.getDocumentNodeFieldValue(documentNode, fieldName)
                         ?: continue
                     val fieldNodeType = domModule.getNodeType(valueNode)
@@ -105,7 +183,7 @@ object BsonSerializer {
             }
             RECOMPUTE -> {
                 val docBytes = ByteArrayOutputStream().use { innerStream ->
-                    for(fieldName in domModule.getDocumentNodeFields(documentNode)){
+                    for (fieldName in domModule.getDocumentNodeFields(documentNode)) {
                         val valueNode = domModule.getDocumentNodeFieldValue(documentNode, fieldName)
                             ?: continue
                         val fieldNodeType = domModule.getNodeType(valueNode)
@@ -131,7 +209,7 @@ object BsonSerializer {
         when (sizeMarkers) {
             WRITE_MINUS_1 -> {
                 out.writeLittleEndianInt(-1)
-                for(index in 0 until domModule.getArrayNodeLength(arrayNode)){
+                for (index in 0 until domModule.getArrayNodeLength(arrayNode)) {
                     val entry = domModule.getArrayNodeEntry(arrayNode, index)
                     val nodeType = domModule.getNodeType(entry)
                     out.writeByte(nodeType.fingerprintByte)
@@ -143,7 +221,7 @@ object BsonSerializer {
             TRUST_DOCUMENT -> {
                 val length = domModule.getArrayNodeSizeBytes(arrayNode)
                 out.writeLittleEndianInt(length)
-                for(index in 0 until domModule.getArrayNodeLength(arrayNode)){
+                for (index in 0 until domModule.getArrayNodeLength(arrayNode)) {
                     val entry = domModule.getArrayNodeEntry(arrayNode, index)
                     val nodeType = domModule.getNodeType(entry)
                     out.writeByte(nodeType.fingerprintByte)
@@ -154,7 +232,7 @@ object BsonSerializer {
             }
             RECOMPUTE -> {
                 val entryBytes = ByteArrayOutputStream().use { innerStream ->
-                    for(index in 0 until domModule.getArrayNodeLength(arrayNode)){
+                    for (index in 0 until domModule.getArrayNodeLength(arrayNode)) {
                         val entry = domModule.getArrayNodeEntry(arrayNode, index)
                         val nodeType = domModule.getNodeType(entry)
                         innerStream.writeByte(nodeType.fingerprintByte)
@@ -206,7 +284,7 @@ object BsonSerializer {
                 val codeBytes = scriptContent.toByteArray()
                 val scopeContentBytes = ByteArrayOutputStream().use { innerStream ->
                     val fieldNames = domModule.getDocumentNodeFields(scopeDocument)
-                    for(fieldName in fieldNames){
+                    for (fieldName in fieldNames) {
                         val valueNode = domModule.getDocumentNodeFieldValue(scopeDocument, fieldName)
                             ?: continue
                         val nodeType = domModule.getNodeType(valueNode)

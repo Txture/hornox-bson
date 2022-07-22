@@ -1,5 +1,6 @@
 package io.txture.hornoxbson.test.cases
 
+import io.txture.hornoxbson.BsonDeserializer
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -8,6 +9,7 @@ import org.junit.jupiter.params.provider.ValueSource
 import io.txture.hornoxbson.BsonSerializer
 import io.txture.hornoxbson.ByteExtensions.hex
 import io.txture.hornoxbson.model.DocumentNode
+import io.txture.hornoxbson.model.Int64Node
 import io.txture.hornoxbson.model.JavaScriptNode
 import io.txture.hornoxbson.model.TextNode
 import strikt.api.expectThat
@@ -80,5 +82,13 @@ class JavaScriptNodeIoTest: IoTest() {
         assertCanSkipOverNode(JavaScriptNode("let x = 3;\n x *= 2;\n Console.log(x);"), trustSizeMarkers)
     }
 
+    @Test
+    fun canSerializeAndDeserializeTopLevelJavaScriptNode() {
+        val node = JavaScriptNode("let x = 3")
 
+        val bytes = BsonSerializer.serializeBsonNode(node)
+        val deserializedNode = BsonDeserializer.deserializeBsonNode(bytes)
+
+        expectThat(deserializedNode).isEqualTo(node)
+    }
 }

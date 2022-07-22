@@ -93,7 +93,7 @@ class HornoxByteArrayInput(
     override fun readByteArrayOfLength(length: Int): ByteArray {
         require(length >= 0) { "The length of the byte array to read must not be negative (given value: ${length})!" }
         val newPosition = this.currentPosition + length
-        if (newPosition >= this.endIndex) {
+        if (newPosition > this.endIndex) {
             throw EndOfInputException("Cannot skip ${length} from position ${this.currentPosition}, as it would exceed the end index (${this.endIndex})!")
         }
         val array = ByteArray(length)

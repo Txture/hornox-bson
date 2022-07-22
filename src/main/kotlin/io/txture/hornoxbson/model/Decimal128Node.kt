@@ -56,4 +56,20 @@ class Decimal128Node : BsonValueNode<ByteArray>, JsonString {
         return "D128[${this.value.hex()}]"
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Decimal128Node
+
+        if (!value.contentEquals(other.value)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return value.contentHashCode()
+    }
+
+
 }

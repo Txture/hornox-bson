@@ -1,11 +1,15 @@
 package io.txture.hornoxbson.test.cases
 
+import io.txture.hornoxbson.BsonDeserializer
+import io.txture.hornoxbson.BsonSerializer
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.ValueSource
 import io.txture.hornoxbson.BsonSerializer.SizeMarkersWriterSetting
+import io.txture.hornoxbson.model.DbPointerNode
 import io.txture.hornoxbson.model.Decimal128Node
+import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
@@ -51,4 +55,13 @@ class Decimal128NodeIoTest : IoTest() {
         assertCanSkipOverNode(Decimal128Node(ByteArray(16)), trustSizeMarkers)
     }
 
+    @Test
+    fun canSerializeAndDeserializeTopLevelDecimal128Node() {
+        val node = Decimal128Node(byteArrayOf(1,2,3))
+
+        val bytes = BsonSerializer.serializeBsonNode(node)
+        val deserializedNode = BsonDeserializer.deserializeBsonNode(bytes)
+
+        expectThat(deserializedNode).isEqualTo(node)
+    }
 }

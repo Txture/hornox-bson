@@ -1,5 +1,6 @@
 package io.txture.hornoxbson.test.cases
 
+import io.txture.hornoxbson.BsonDeserializer
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -11,6 +12,7 @@ import io.txture.hornoxbson.ByteExtensions.hex
 import io.txture.hornoxbson.model.DbPointerNode
 import io.txture.hornoxbson.model.DocumentNode
 import io.txture.hornoxbson.model.TextNode
+import io.txture.hornoxbson.model.TrueNode
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
@@ -97,4 +99,13 @@ class DbPointerNodeIoTest : IoTest() {
         assertCanSkipOverNode(DbPointerNode(name = "foobar!", value = content), trustSizeMarkers)
     }
 
+    @Test
+    fun canSerializeAndDeserializeTopLevelDbPointerNode() {
+        val node = DbPointerNode("hello", byteArrayOf(1,2,3))
+
+        val bytes = BsonSerializer.serializeBsonNode(node)
+        val deserializedNode = BsonDeserializer.deserializeBsonNode(bytes)
+
+        expectThat(deserializedNode).isEqualTo(node)
+    }
 }

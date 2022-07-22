@@ -378,6 +378,156 @@ object BsonDeserializer {
     }
 
     /**
+     * Deserializes a top-level node (and its contents).
+     *
+     * Please note that this operation is **not** conforming to the BSON standard. The BSON standard only allows [DocumentNode]s at the top level.
+     * To deserialize a regular BSON document, please use [deserializeBsonDocument]. This method only exists to deserialize the nodes which were
+     * written with [BsonSerializer.serializeBsonNode].
+     *
+     * @param inputStream The input stream to read
+     *
+     * @return The deserialized top-level node (including its content).
+     *
+     * @see [BsonSerializer.serializeBsonNode]
+     */
+    @JvmStatic
+    fun deserializeBsonNode(inputStream: InputStream): BsonNode {
+        val input = HornoxInput.fromInputStream(inputStream)
+        return deserializeBsonNode(input, HornoxDomModule)
+    }
+
+
+    /**
+     * Deserializes a top-level node (and its contents).
+     *
+     * Please note that this operation is **not** conforming to the BSON standard. The BSON standard only allows [DocumentNode]s at the top level.
+     * To deserialize a regular BSON document, please use [deserializeBsonDocument]. This method only exists to deserialize the nodes which were
+     * written with [BsonSerializer.serializeBsonNode].
+     *
+     * @param inputStream The input stream to read
+     * @param domModule The DOM module used for the deserialization.
+     *
+     * @return The deserialized top-level node (including its content).
+     *
+     * @see [BsonSerializer.serializeBsonNode]
+     */
+    @JvmStatic
+    fun <T> deserializeBsonNode(inputStream: InputStream, domModule: BsonDomModule<T>): T {
+        val input = HornoxInput.fromInputStream(inputStream)
+        return deserializeBsonNode(input, domModule)
+    }
+
+    /**
+     * Deserializes a top-level node (and its contents).
+     *
+     * Please note that this operation is **not** conforming to the BSON standard. The BSON standard only allows [DocumentNode]s at the top level.
+     * To deserialize a regular BSON document, please use [deserializeBsonDocument]. This method only exists to deserialize the nodes which were
+     * written with [BsonSerializer.serializeBsonNode].
+     *
+     * @param byteArray The byte array to read
+     * @param trustStringSizeMarkers Use `true` if the size markers of strings in the BSON can be trusted,
+     * or use `false` if the parser should ignore them and look for null terminators instead. If a string size
+     * marker is 0 or less or is found to lead to an invalid location in the input, it will always be ignored,
+     * regardless of this setting.
+     * @param startIndex The start index in the array for deserialization (inclusive). Defaults to 0.
+     * @param endIndex The end index in the array for deserialization (exclusive). Defaults to the length of the array.
+     *
+     * @return The deserialized top-level node (including its content).
+     *
+     * @see [BsonSerializer.serializeBsonNode]
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun deserializeBsonNode(byteArray: ByteArray, trustStringSizeMarkers: Boolean = false, startIndex: Int = 0, endIndex: Int = byteArray.size): BsonNode {
+        val input = HornoxInput.fromByteArray(byteArray, trustStringSizeMarkers, startIndex, endIndex)
+        return deserializeBsonNode(input, HornoxDomModule)
+    }
+
+    /**
+     * Deserializes a top-level node (and its contents).
+     *
+     * Please note that this operation is **not** conforming to the BSON standard. The BSON standard only allows [DocumentNode]s at the top level.
+     * To deserialize a regular BSON document, please use [deserializeBsonDocument]. This method only exists to deserialize the nodes which were
+     * written with [BsonSerializer.serializeBsonNode].
+     *
+     * @param byteBuffer The buffer to read from.
+     * @param trustStringSizeMarkers Use `true` if the size markers of strings in the BSON can be trusted,
+     * or use `false` if the parser should ignore them and look for null terminators instead. If a string size
+     * marker is 0 or less or is found to lead to an invalid location in the input, it will always be ignored,
+     * regardless of this setting.
+     * @param domModule The DOM module used for the deserialization.
+     *
+     * @return The deserialized top-level node (including its content).
+     *
+     * @see [BsonSerializer.serializeBsonNode]
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun <T> deserializeBsonNode(byteBuffer: ByteBuffer, trustStringSizeMarkers: Boolean = false, domModule: BsonDomModule<T>): T {
+        val input = HornoxInput.fromByteBuffer(byteBuffer, trustStringSizeMarkers)
+        return deserializeBsonNode(input, domModule)
+    }
+
+    /**
+     * Deserializes a top-level node (and its contents).
+     *
+     * Please note that this operation is **not** conforming to the BSON standard. The BSON standard only allows [DocumentNode]s at the top level.
+     * To deserialize a regular BSON document, please use [deserializeBsonDocument]. This method only exists to deserialize the nodes which were
+     * written with [BsonSerializer.serializeBsonNode].
+     *
+     * @param byteBuffer The buffer to read from.
+     * @param trustStringSizeMarkers Use `true` if the size markers of strings in the BSON can be trusted,
+     * or use `false` if the parser should ignore them and look for null terminators instead. If a string size
+     * marker is 0 or less or is found to lead to an invalid location in the input, it will always be ignored,
+     * regardless of this setting.
+     *
+     * @return The deserialized top-level node (including its content).
+     *
+     * @see [BsonSerializer.serializeBsonNode]
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun deserializeBsonNode(byteBuffer: ByteBuffer, trustStringSizeMarkers: Boolean = false): BsonNode {
+        val input = HornoxInput.fromByteBuffer(byteBuffer, trustStringSizeMarkers)
+        return deserializeBsonNode(input, HornoxDomModule)
+    }
+
+
+    /**
+     * Deserializes a top-level node (and its contents).
+     *
+     * Please note that this operation is **not** conforming to the BSON standard. The BSON standard only allows [DocumentNode]s at the top level.
+     * To deserialize a regular BSON document, please use [deserializeBsonDocument]. This method only exists to deserialize the nodes which were
+     * written with [BsonSerializer.serializeBsonNode].
+     *
+     * @param byteArray The byte array to read
+     * @param trustStringSizeMarkers Use `true` if the size markers of strings in the BSON can be trusted,
+     * or use `false` if the parser should ignore them and look for null terminators instead. If a string size
+     * marker is 0 or less or is found to lead to an invalid location in the input, it will always be ignored,
+     * regardless of this setting.
+     * @param startIndex The start index in the array for deserialization (inclusive). Defaults to 0.
+     * @param endIndex The end index in the array for deserialization (exclusive). Defaults to the length of the array.
+     * @param domModule The DOM module used for the deserialization.
+     *
+     * @return The deserialized top-level node (including its content).
+     *
+     * @see [BsonSerializer.serializeBsonNode]
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun <T> deserializeBsonNode(byteArray: ByteArray, trustStringSizeMarkers: Boolean = false, startIndex: Int = 0, endIndex: Int = byteArray.size, domModule: BsonDomModule<T>): T {
+        val input = HornoxInput.fromByteArray(byteArray, trustStringSizeMarkers, startIndex, endIndex)
+        return deserializeBsonNode(input, domModule)
+    }
+
+
+    private fun <T> deserializeBsonNode(input: HornoxInput, domModule: BsonDomModule<T>): T {
+        val fingerprintByte = input.readByte()
+        return this.parseFieldValue(fingerprintByte, input, domModule)
+    }
+
+
+    /**
      * Deserializes the [DocumentNode] contained in the given [byteBuffer] in BSON format.
      *
      * The current position of the [byteBuffer] will be respected and parsing will terminate when
@@ -386,6 +536,10 @@ object BsonDeserializer {
      * terminator byte of the document.
      *
      * @param byteBuffer The buffer to read from.
+     * @param trustStringSizeMarkers Use `true` if the size markers of strings in the BSON can be trusted,
+     * or use `false` if the parser should ignore them and look for null terminators instead. If a string size
+     * marker is 0 or less or is found to lead to an invalid location in the input, it will always be ignored,
+     * regardless of this setting.
      *
      * @return The parsed document node
      */
@@ -404,6 +558,11 @@ object BsonDeserializer {
      * terminator byte of the document.
      *
      * @param byteBuffer The buffer to read from.
+     * @param trustStringSizeMarkers Use `true` if the size markers of strings in the BSON can be trusted,
+     * or use `false` if the parser should ignore them and look for null terminators instead. If a string size
+     * marker is 0 or less or is found to lead to an invalid location in the input, it will always be ignored,
+     * regardless of this setting.
+     * @param domModule The DOM module used for the deserialization.
      *
      * @return The parsed document node
      */
@@ -427,6 +586,8 @@ object BsonDeserializer {
      * or use `false` if the parser should ignore them and look for null terminators instead. If a string size
      * marker is 0 or less or is found to lead to an invalid location in the input, it will always be ignored,
      * regardless of this setting.
+     * @param startIndex The start index in the array for deserialization (inclusive). Defaults to 0.
+     * @param endIndex The end index in the array for deserialization (exclusive). Defaults to the length of the array.
      *
      * @return The parsed document.
      */
@@ -460,6 +621,9 @@ object BsonDeserializer {
      * or use `false` if the parser should ignore them and look for null terminators instead. If a string size
      * marker is 0 or less or is found to lead to an invalid location in the input, it will always be ignored,
      * regardless of this setting.
+     * @param startIndex The start index in the array for deserialization (inclusive). Defaults to 0.
+     * @param endIndex The end index in the array for deserialization (exclusive). Defaults to the length of the array.
+     * @param domModule The DOM module used for the deserialization.
      *
      * @return The parsed document.
      */
@@ -529,11 +693,11 @@ object BsonDeserializer {
         }
         var fingerprintByte = input.readByte()
         while (fingerprintByte != NULL_BYTE) {
-            if(isArray){
+            if (isArray) {
                 input.skipCString()
                 val valueNode = parseFieldValue(fingerprintByte, input, domModule)
                 domModule.addArrayEntry(currentNode, valueNode)
-            }else{
+            } else {
                 val fieldName = input.readCString()
                 val valueNode = parseFieldValue(fingerprintByte, input, domModule)
                 domModule.setDocumentNodeFieldValue(currentNode, fieldName, valueNode)
@@ -573,8 +737,8 @@ object BsonDeserializer {
             }
             NodeType.TRUE.fingerprintByte, NodeType.FALSE.fingerprintByte -> {
                 when (input.readByte()) {
-                    NULL_BYTE ->  domModule.createBooleanNode(false)
-                    0x01.toByte() ->  domModule.createBooleanNode(true)
+                    NULL_BYTE -> domModule.createBooleanNode(false)
+                    0x01.toByte() -> domModule.createBooleanNode(true)
                     else -> throw IllegalArgumentException("Failed to parse boolean!")
                 }
             }

@@ -61,6 +61,8 @@ class DocumentNode(
         return this.fields.isEmpty()
     }
 
+
+
     override fun getJsonArray(name: String): ArrayNode {
         return when (val node = this.fields[name]) {
             is ArrayNode -> node
@@ -140,6 +142,21 @@ class DocumentNode(
 
     override fun isNull(name: String): Boolean {
         return this.fields[name] is NullNode
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as DocumentNode
+
+        if (fields != other.fields) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return fields.hashCode()
     }
 
     @Suppress("UNCHECKED_CAST")

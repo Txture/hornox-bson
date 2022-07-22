@@ -1,5 +1,6 @@
 package io.txture.hornoxbson.test.cases
 
+import io.txture.hornoxbson.BsonDeserializer
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -22,7 +23,7 @@ class ArrayNodeIoTest : IoTest() {
     private val emptyArrayNodeLengthInBytes = Int.SIZE_BYTES + 1
 
     @Test
-    fun compareSerializedFormatWithBsonReferenceImplementation(){
+    fun compareSerializedFormatWithBsonReferenceImplementation() {
         // created by MongoDB BSON serializer implementation.
         val reference = "330000000461001b00000002300004000000666f6f000231000400000062617200000274000900000053756363657373210000"
 
@@ -93,7 +94,7 @@ class ArrayNodeIoTest : IoTest() {
         node.length = expectedSize
         val bytes = this.serializeSingeNode(node, sizeMarkersWriterSetting)
 
-        val sizeToAssert = when(sizeMarkersWriterSetting){
+        val sizeToAssert = when (sizeMarkersWriterSetting) {
             SizeMarkersWriterSetting.WRITE_MINUS_1 -> -1
             SizeMarkersWriterSetting.TRUST_DOCUMENT -> expectedSize
             SizeMarkersWriterSetting.RECOMPUTE -> expectedSize
@@ -104,7 +105,7 @@ class ArrayNodeIoTest : IoTest() {
             get { ByteBuffer.wrap(this).order(ByteOrder.LITTLE_ENDIAN) }.and {
                 get { this.getInt(0) }.isEqualTo(sizeToAssert)
                 get { this.get(Int.SIZE_BYTES) }.isEqualTo(NodeType.INT32.fingerprintByte)
-                get { this.get(expectedSize-1) }.isEqualTo(0x00.toByte())
+                get { this.get(expectedSize - 1) }.isEqualTo(0x00.toByte())
             }
         }
     }
@@ -124,5 +125,15 @@ class ArrayNodeIoTest : IoTest() {
             it.add(Int32Node(3))
         }
         assertCanSkipOverNode(node, trustSizeMarkers)
+    }
+
+    @Test
+    fun canSerializeAndDeserializeTopLevelArrayNode() {
+        val node = ArrayNode(Int32Node(1), Int32Node(2), Int32Node(3))
+
+        val bytes = BsonSerializer.serializeBsonNode(node)
+        val deserializedNode = BsonDeserializer.deserializeBsonNode(bytes)
+
+        expectThat(deserializedNode).isEqualTo(node)
     }
 }

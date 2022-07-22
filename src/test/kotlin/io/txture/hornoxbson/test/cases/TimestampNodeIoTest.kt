@@ -1,5 +1,6 @@
 package io.txture.hornoxbson.test.cases
 
+import io.txture.hornoxbson.BsonDeserializer
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -91,4 +92,13 @@ class TimestampNodeIoTest : IoTest() {
         assertCanSkipOverNode(TimestampNode(value), trustSizeMarkers)
     }
 
+    @Test
+    fun canSerializeAndDeserializeTopLevelTimestampNode() {
+        val node = TimestampNode(System.currentTimeMillis())
+
+        val bytes = BsonSerializer.serializeBsonNode(node)
+        val deserializedNode = BsonDeserializer.deserializeBsonNode(bytes)
+
+        expectThat(deserializedNode).isEqualTo(node)
+    }
 }

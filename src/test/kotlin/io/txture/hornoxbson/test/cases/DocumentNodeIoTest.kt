@@ -1,14 +1,14 @@
 package io.txture.hornoxbson.test.cases
 
+import io.txture.hornoxbson.BsonDeserializer
+import io.txture.hornoxbson.BsonSerializer
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.ValueSource
 import io.txture.hornoxbson.BsonSerializer.SizeMarkersWriterSetting
-import io.txture.hornoxbson.model.DocumentNode
-import io.txture.hornoxbson.model.Int32Node
-import io.txture.hornoxbson.model.NodeType
-import io.txture.hornoxbson.model.TextNode
+import io.txture.hornoxbson.model.*
+import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEmpty
@@ -128,5 +128,18 @@ class DocumentNodeIoTest : IoTest() {
             it["age"] = Int32Node(42)
         }
         assertCanSkipOverNode(node, trustSizeMarkers)
+    }
+
+    @Test
+    fun canSerializeAndDeserializeTopLevelDocumentNode() {
+        val node = DocumentNode()
+        node["hello"] = TextNode("world")
+        node["foo"] = Int32Node(47)
+        node["pi"] = DoubleNode(3.1415)
+
+        val bytes = BsonSerializer.serializeBsonNode(node)
+        val deserializedNode = BsonDeserializer.deserializeBsonNode(bytes)
+
+        expectThat(deserializedNode).isEqualTo(node)
     }
 }

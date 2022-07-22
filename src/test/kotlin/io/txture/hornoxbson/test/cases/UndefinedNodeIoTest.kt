@@ -1,5 +1,6 @@
 package io.txture.hornoxbson.test.cases
 
+import io.txture.hornoxbson.BsonDeserializer
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -10,6 +11,7 @@ import io.txture.hornoxbson.BsonSerializer.SizeMarkersWriterSetting
 import io.txture.hornoxbson.ByteExtensions.hex
 import io.txture.hornoxbson.model.DocumentNode
 import io.txture.hornoxbson.model.TextNode
+import io.txture.hornoxbson.model.TimestampNode
 import io.txture.hornoxbson.model.UndefinedNode
 import strikt.api.expectThat
 import strikt.assertions.isA
@@ -52,5 +54,15 @@ class UndefinedNodeIoTest : IoTest() {
     @ValueSource(booleans = [true, false])
     fun canSkipOverDoubleNode(trustSizeMarkers: Boolean) {
         assertCanSkipOverNode(UndefinedNode, trustSizeMarkers)
+    }
+
+    @Test
+    fun canSerializeAndDeserializeTopLevelUndefinedNode() {
+        val node = UndefinedNode
+
+        val bytes = BsonSerializer.serializeBsonNode(node)
+        val deserializedNode = BsonDeserializer.deserializeBsonNode(bytes)
+
+        expectThat(deserializedNode).isEqualTo(node)
     }
 }

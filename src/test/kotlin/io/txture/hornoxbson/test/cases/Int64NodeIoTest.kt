@@ -1,5 +1,6 @@
 package io.txture.hornoxbson.test.cases
 
+import io.txture.hornoxbson.BsonDeserializer
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -8,6 +9,7 @@ import io.txture.hornoxbson.BsonSerializer
 import io.txture.hornoxbson.BsonSerializer.SizeMarkersWriterSetting
 import io.txture.hornoxbson.ByteExtensions.hex
 import io.txture.hornoxbson.model.DocumentNode
+import io.txture.hornoxbson.model.Int32Node
 import io.txture.hornoxbson.model.Int64Node
 import io.txture.hornoxbson.model.TextNode
 import strikt.api.expectThat
@@ -133,4 +135,13 @@ class Int64NodeIoTest : IoTest() {
         assertCanSkipOverNode(Int64Node(value), trustSizeMarkers)
     }
 
+    @Test
+    fun canSerializeAndDeserializeTopLevelInt64Node() {
+        val node = Int64Node(Long.MAX_VALUE / 2)
+
+        val bytes = BsonSerializer.serializeBsonNode(node)
+        val deserializedNode = BsonDeserializer.deserializeBsonNode(bytes)
+
+        expectThat(deserializedNode).isEqualTo(node)
+    }
 }

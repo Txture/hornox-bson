@@ -1,5 +1,6 @@
 package io.txture.hornoxbson.test.cases
 
+import io.txture.hornoxbson.BsonDeserializer
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -9,6 +10,7 @@ import io.txture.hornoxbson.BsonSerializer.SizeMarkersWriterSetting
 import io.txture.hornoxbson.ByteExtensions.hex
 import io.txture.hornoxbson.model.DocumentNode
 import io.txture.hornoxbson.model.TextNode
+import io.txture.hornoxbson.model.UndefinedNode
 import io.txture.hornoxbson.model.UtcDateTimeNode
 import strikt.api.expectThat
 import strikt.assertions.isA
@@ -91,4 +93,13 @@ class UtcDateTimeNodeIoTest : IoTest() {
         assertCanSkipOverNode(UtcDateTimeNode(value), trustSizeMarkers)
     }
 
+    @Test
+    fun canSerializeAndDeserializeTopLevelUtcDateTimeNode() {
+        val node = UtcDateTimeNode(System.currentTimeMillis())
+
+        val bytes = BsonSerializer.serializeBsonNode(node)
+        val deserializedNode = BsonDeserializer.deserializeBsonNode(bytes)
+
+        expectThat(deserializedNode).isEqualTo(node)
+    }
 }

@@ -1,5 +1,6 @@
 package io.txture.hornoxbson.test.cases
 
+import io.txture.hornoxbson.BsonDeserializer
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -7,10 +8,7 @@ import org.junit.jupiter.params.provider.CsvSource
 import io.txture.hornoxbson.BsonSerializer
 import io.txture.hornoxbson.BsonSerializer.SizeMarkersWriterSetting
 import io.txture.hornoxbson.ByteExtensions.hex
-import io.txture.hornoxbson.model.BinaryNode
-import io.txture.hornoxbson.model.BinarySubtype
-import io.txture.hornoxbson.model.DocumentNode
-import io.txture.hornoxbson.model.TextNode
+import io.txture.hornoxbson.model.*
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
@@ -29,7 +27,7 @@ class BinaryNodeIoTest : IoTest() {
         val reference = "25000000056100080000000003030303030303030274000900000053756363657373210000"
 
         val doc2 = DocumentNode()
-        doc2["a"] = BinaryNode(ByteArray(8){ 0x03 }, BinarySubtype.GENERIC)
+        doc2["a"] = BinaryNode(ByteArray(8) { 0x03 }, BinarySubtype.GENERIC)
         doc2["t"] = TextNode("Success!")
 
         val bytes2 = BsonSerializer.serializeBsonDocument(doc2)
@@ -198,5 +196,15 @@ class BinaryNodeIoTest : IoTest() {
         val node = BinaryNode(value = content, subtype = subType)
 
         assertCanSkipOverNode(node, trustSizeMarkers)
+    }
+
+    @Test
+    fun canSerializeAndDeserializeTopLevelBinaryNode() {
+        val node = BinaryNode(byteArrayOf(12, 14, 32), BinarySubtype.COMPRESSED)
+
+        val bytes = BsonSerializer.serializeBsonNode(node)
+        val deserializedNode = BsonDeserializer.deserializeBsonNode(bytes)
+
+        expectThat(deserializedNode).isEqualTo(node)
     }
 }
